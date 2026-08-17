@@ -96,9 +96,15 @@ economics.
 | [`bsc/CryptoTreasury_0xE6fa68BA6c32F2C18C52380277B563C89847B901`](bsc/CryptoTreasury_0xE6fa68BA6c32F2C18C52380277B563C89847B901) | `0xE6fa68BA6c32F2C18C52380277B563C89847B901` | Yes | Implementation behind the treasury proxy. Holds mint authority over ProToken. |
 | [`bsc/UnnamedTreasuryProxy_0xC0021e0849faDefB98761f40829009905Dbd8Ee8`](bsc/UnnamedTreasuryProxy_0xC0021e0849faDefB98761f40829009905Dbd8Ee8) | `0xC0021e0849faDefB98761f40829009905Dbd8Ee8` | Shell only | Same admin family, role unresolved. **See `UNRESOLVED.md`.** |
 | [`bsc/ProTokenGovernanceProxy_0x96079eF9b7630A55608a3d4b90733AC56434a5fF`](bsc/ProTokenGovernanceProxy_0x96079eF9b7630A55608a3d4b90733AC56434a5fF) | `0x96079eF9b7630A55608a3d4b90733AC56434a5fF` | Shell only | `ProToken.governance()`. Implementation unresolved. **See `UNRESOLVED.md`.** |
+| [`bsc/OlympusReserveBondDepository_0x03a05f1b78c075fd506d2ec38b5020cf571d5ace`](bsc/OlympusReserveBondDepository_0x03a05f1b78c075fd506d2ec38b5020cf571d5ace) | `0x03a05f1b…` | **No** (recovered) | Reserve BondDepository impl behind the 3 `reserveDepositor` proxies. Holds ProToken mint authority. **Value-path, unverified — see `SECURITY_AUDIT.md` B.** |
+| [`bsc/OlympusLPBondDepository_0xa394dcc7433809b313948616a768591324318364`](bsc/OlympusLPBondDepository_0xa394dcc7433809b313948616a768591324318364) | `0xa394dcc7…` | **No** (recovered) | LP BondDepository impl behind the 4 `liquidityDepositor` proxies. Permissionless `deposit()`. **Value-path, unverified — see `SECURITY_AUDIT.md` B.** |
+| [`bsc/OlympusStakingDistributor_0x62e52600d544deb350cf5564e6f1abb67213bec3`](bsc/OlympusStakingDistributor_0x62e52600d544deb350cf5564e6f1abb67213bec3) | `0x62e52600…` | **No** (recovered) | StakingDistributor impl behind the `rewardManager` proxy (`mintRewards`). **Value-path, unverified.** |
 
 ## Also see
 
+- **[`SECURITY_AUDIT.md`](SECURITY_AUDIT.md)** — the security review: full
+  entry-point enumeration, state-dependency/composition map, findings, and the
+  decisive unverified-bonding boundary. Read the Verdict first.
 - **[`AUTHORITY_AND_CONFIG.md`](AUTHORITY_AND_CONFIG.md)** — live on-chain
   state (who holds what role right now, balances, pool composition, config
   parameters) as of the 2026-08-17 snapshot. Source code shows what's

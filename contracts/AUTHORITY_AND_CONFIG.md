@@ -138,3 +138,23 @@ Source in `CryptoTreasury_0xE6fa68BA.../`. Key point for this audit: it is the
 mechanism by which new ProToken supply gets created, and ProToken is CDAO's only
 liquidity counterparty — so ProToken supply/price manipulation via this Treasury
 propagates directly into CDAO's own pool pricing.
+
+## CryptoTreasury role holders (live) — the ProToken mint authorities
+
+Read live from the treasury's role arrays (2026-08-17). **All are proxies backed by
+unverified Olympus-fork implementations** — see `SECURITY_AUDIT.md` Finding B and
+the `bsc/Olympus*` folders.
+
+| Role | Holder proxies | Impl (unverified) | What the role can do |
+|---|---|---|---|
+| `rbs` | `0xc2D8595…` (RBSControl proxy) | RBSControl (verified) | call `depositStableReserve` |
+| `reserveDepositor` | `0xd337…`, `0xC56D…`, `0xaa04…` | `0x03a05f1b…` reserve BondDepository | `depositStableReserve`, `depositBondReserve`(no), `destroyBondReserve` (unbounded `_profit` mint — Finding A) |
+| `liquidityDepositor` | `0x941D…`, `0x59dF…`, `0x7365…`, `0x510E…` | `0xa394dcc7…` LP BondDepository | `depositBondReserve` (mint against bonded LP) |
+| `rewardManager` + `reserveManager` | `0x7B09…` | `0x62e52600…` StakingDistributor | `mintRewards` (≤ `excessReserves()`) |
+
+Other live treasury config: `rbs = 0xc2D8595…`; `proToken = 0x8D657445…`;
+`usd = 0x55d398326f…` (BSC-USD); `reserveTokens = [BSC-USD, ProToken]`;
+`liquidityTokens = [0x63844bd4…]` (ProToken/BSC-USD LP); `dead = 0x…dEaD`;
+**`blocksNeededForQueue = 1`** (effectively no timelock on role grants — Finding C);
+`totalReserves ≈ 1.16e16` (raw). Bond terms across the depositories are set by EOA
+`0x8533e14Caea7C622A1Dc69B9eb5f0e47b79CE6A7`.

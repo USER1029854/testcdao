@@ -94,6 +94,33 @@ CDAO (~44% of supply) not accounted for by the owner/governance/dead/pair
 balances recorded in `AUTHORITY_AND_CONFIG.md`. An audit with paid Etherscan/BSC
 archive-node access should re-run this.
 
+## 6. The ProToken mint engine is an unverified Olympus-DAO fork (the biggest gap)
+
+Found during the security-audit pass (`SECURITY_AUDIT.md` Finding B). `ProToken`
+(CDAO's only pool counterparty) is the reserve token of a full **Olympus V1 fork**.
+Its `mint` is gated to `CryptoTreasury`, which mints to holders of
+`reserveDepositor` / `liquidityDepositor` / `rewardManager` roles. Those roles are
+held by **eight proxies backed by three unverified implementations**:
+
+- `0x03a05f1b78c075fd506d2ec38b5020cf571d5ace` — reserve BondDepository (behind
+  reserveDepositors `0xd337…`, `0xC56D…`, `0xaa04…`)
+- `0xa394dcc7433809b313948616a768591324318364` — LP BondDepository (behind
+  liquidityDepositors `0x941D…`, `0x59dF…`, `0x7365…`, `0x510E…`)
+- `0x62e52600d544deb350cf5564e6f1abb67213bec3` — StakingDistributor (behind
+  reward/reserve manager `0x7B09…`)
+
+Recovered behavior (bytecode + selectors + one deposit simulation) is saved under
+`bsc/OlympusReserveBondDepository_…/`, `bsc/OlympusLPBondDepository_…/`, and
+`bsc/OlympusStakingDistributor_…/`. **The bond `deposit()` path is permissionless**
+(confirmed empirically). What could not be determined: whether an unprivileged
+bonder can mint ProToken for *less than deposited value* (via bond-price/debt-ratio
+math or a flash-loan-manipulable LP valuation), and whether any reserve-bond path
+reaches the treasury's unbounded `destroyBondReserve` mint. That math is the whole
+solvency question and it is unreadable. **Next step:** obtain/decompile these three
+implementations' source and audit the Olympus bond math + LP `bondCalculator`
+against reserve manipulation. Bond terms are set by a single EOA
+`0x8533e14Caea7C622A1Dc69B9eb5f0e47b79CE6A7`.
+
 ## 5. Off-chain / operational trust, not visible on any single contract
 
 - **The Gnosis Safe's 32 individual signers** are pseudonymous EOAs; nothing
