@@ -31,3 +31,25 @@ source/
 `abi.json` in this folder is the verified ABI as returned by the explorer.
 
 Note: the main contract file is named `ProToken.sol` on disk (as submitted for verification) but declares `contract Token`. This contract is structurally very similar to `CDaoToken` (0xa9d33E9203E7d4B9EA8f37Eca73CFe810C5d7cD0) — same governance/whitelist/sell-tax pattern — but is a distinct deployment with its own address, roles, and state.
+
+## Why this is in the repo: it's the other side of CDAO's only pool
+
+`ProToken` is **not** a tangential curiosity. CDaoToken's `targetPool`
+(`PancakePair_0x86aC451a0c0bcAc5b74116Ae90832e89E9c630df/`) is a CDAO/ProToken
+pair — ProToken is CDAO's sole liquidity counterparty. It also has its own
+`mint(address,uint256)` function, gated `msg.sender == treasury`, unlike
+CDaoToken (which has no mint beyond the constructor). Live state — including
+`owner()` (renounced to `0x...dEaD`), `governance()` (a separate upgradeable
+proxy), `treasury()` (holds this token's mint authority), and `targetPool()`
+(a **different** pool, ProToken/BSC-USD, not the CDAO pair) — is recorded in
+`../../AUTHORITY_AND_CONFIG.md`. The full upstream authority graph (treasury
+mint power, governance proxy, the Gnosis Safe behind both) is written up
+starting from `../../AUTHORITY_AND_CONFIG.md` and the sibling
+`TreasuryProxy_0xf9074b5C035c961443373F78A6344e5Adc61d314/`,
+`CryptoTreasury_0xE6fa68BA6c32F2C18C52380277B563C89847B901/`, and
+`ProTokenGovernanceProxy_0x96079eF9b7630A55608a3d4b90733AC56434a5fF/` folders.
+
+## Library integrity
+
+Same OpenZeppelin v5.5.0 dependency tree as CDaoToken — diffed byte-for-byte
+against upstream, **identical**, no modifications found.

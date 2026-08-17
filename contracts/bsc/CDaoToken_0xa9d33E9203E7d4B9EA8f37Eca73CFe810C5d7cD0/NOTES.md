@@ -31,3 +31,46 @@ source/
 `abi.json` in this folder is the verified ABI as returned by the explorer.
 
 Note: the main contract file is named `CToken.sol` on disk (as submitted for verification) but declares `contract CDaoToken`.
+
+## Library integrity
+
+`Ownable.sol`, `ERC20.sol`, `IERC20.sol`, `IERC20Metadata.sol`, `Context.sol`,
+and `draft-IERC6093.sol` under `source/lib/` were diffed byte-for-byte (modulo
+line endings) against OpenZeppelin Contracts `v5.5.0` fetched fresh from
+`github.com/OpenZeppelin/openzeppelin-contracts` — **identical**, no
+modifications found.
+
+## Trust graph — see `../../AUTHORITY_AND_CONFIG.md` and `../../UNRESOLVED.md`
+
+This contract's own code is small and was fully read; almost everything that
+actually bears on its security lives outside it:
+
+- `targetPool()` → `PancakePair_0x86aC451a.../` — CDAO's **only** liquidity
+  pool, paired against ProToken (`Token_0x8D65744527f55d0b2338350912d5C99A81ddF0e2/`),
+  not against BNB or a stablecoin.
+- `governance()` → `GovernanceProxy_0xc2D8595Fe8D904a8665059D68A6fa2467dF09A13/`,
+  an upgradeable proxy currently holding **32.9% of CDAO's total supply**,
+  administered by a 19-of-32 Gnosis Safe
+  (`GnosisSafe19of32_0x912008f7f56650bFcBa8102cdCD8ABD889769997/`) via
+  `ProxyAdmin_0xd290bd0810f075e0b6128e9d3a08948dfc985b66/`. None of this is
+  named anywhere in CDaoToken's own source — it was found only by treating
+  `governance` as a graph node and walking outward from it.
+- Live state (owner, whitelist-adjacent flags, tax rate, transfer status,
+  balances) is recorded in `../../AUTHORITY_AND_CONFIG.md`, not just the
+  constructor defaults shown in the source above — several of these have
+  drifted from their constructor values (e.g. `sellRatio` is unchanged at
+  2800/28%, but `transferStatus` is currently `false`, disabling buys from the
+  pool for non-whitelisted addresses).
+
+## Event-history scan attempt (partial failure — see `../../UNRESOLVED.md` item 4)
+
+Etherscan V2's `account`/`logs`/`proxy` API modules reject chain 56 on this
+key's tier. A chunked `eth_getLogs` scan (deployment-era + recent windows,
+~9,500-block chunks) across `bsc.drpc.org`, `bsc-mainnet.public.blastapi.io`,
+and `bsc.publicnode.com` was attempted for `OwnershipTransferred`,
+`WhitelistAdded`/`Removed`, `BalancePoolAddressUpdated`,
+`TokenTransferStateUpdated`, `SellRateChanged`, `BalanceTargetRateChanged`,
+`GovernanceAddressupdated`, and `BalancePoolBurned` — **every chunk failed**
+(range caps / rate limits on every provider tried). Current-state values were
+obtained via direct `eth_call` instead (see `../../AUTHORITY_AND_CONFIG.md`);
+full historical admin-action history is not part of this repo.
